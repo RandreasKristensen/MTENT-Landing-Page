@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Try gitster: a simulated walkthrough of an online DAW for making songs with other people. Open a link, bring your own setup, work at once, keep every version.">
+<title>gitster · demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cstyle%3E.r%7Bstroke:%231D2150%7D@media (prefers-color-scheme:dark)%7B.r%7Bstroke:%23EEEFEA%7D%7D%3C/style%3E%3Ccircle class='r' cx='13' cy='13' r='11.6' fill='none' stroke-width='1.6'/%3E%3Ccircle class='r' cx='13' cy='13' r='7' fill='none' stroke-width='1.6'/%3E%3Ccircle cx='13' cy='13' r='3' fill='%23FE5B1E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/gitster.css">
+<style>
+  /* ---------- intro ---------- */
+
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 24px clamp(28px, 5vw, 64px);
+    align-items: end;
+    padding-block: clamp(32px, 5vw, 60px) clamp(22px, 3.5vw, 36px);
+  }
+  .intro h1 { font-size: clamp(42px, 6.6vw, 76px); margin-bottom: 16px; }
+  .intro .lede { margin: 0; max-width: 34ch; }
+  .intro-cta { display: grid; gap: 12px; justify-items: start; justify-self: end; }
+  .intro-cta .hero-note { margin: 0; max-width: 30ch; }
+
+  /* ---------- stepper ---------- */
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .steps li {
+    border-top: 2px solid var(--rule);
+    padding-top: 8px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    transition: border-color .25s, color .25s;
+  }
+  .steps .n { display: block; font-weight: 500; margin-bottom: 2px; }
+  .steps li.done { border-color: var(--ink); color: var(--ink-muted); }
+  .steps li.current { border-color: var(--orange); color: var(--ink); }
+  .steps li.current .n { color: var(--orange); }
+
+  .caption-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px 24px;
+    padding: 16px 0 18px;
+    flex-wrap: wrap;
+  }
+  .caption {
+    margin: 0;
+    flex: 1 1 320px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    max-width: 62ch;
+    min-height: 3.2em;
+  }
+  .caption .k { color: var(--orange); }
+  .step-nav { display: flex; gap: 8px; flex: none; }
+  .btn-sm { padding: 10px 22px; font-size: 15px; }
+
+  /* ---------- DAW window ---------- */
+
+  .daw {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .daw-top {
+    display: flex;
+    align-items: center;
+    gap: 8px 14px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    min-height: 48px;
+  }
+  .proj {
+    font-family: var(--display);
+    font-weight: 700;
+    font-stretch: 90%;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .proj-path {
+    flex: 1 1 120px;
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+    border-radius: var(--radius);
+    padding: 3px 7px;
+  }
+  .tag-ok { color: var(--ink-muted); white-space: nowrap; }
+  .tag-fill { background: var(--orange); border-color: var(--orange); color: var(--orange-ink); }
+  .tag.pop { animation: pop .5s cubic-bezier(.2, .9, .3, 1.3) both; }
+
+  /* transport */
+  .transport {
+    display: flex;
+    align-items: center;
+    gap: 10px 16px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .play {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--orange);
+    color: var(--orange-ink);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: filter .14s ease;
+  }
+  .play:hover { filter: brightness(1.07); }
+  .play svg { display: block; }
+  .readout {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    white-space: nowrap;
+  }
+  .readout .sec { color: var(--ink-faint); margin-left: 8px; }
+  .meta { display: grid; gap: 1px; font-family: var(--mono); text-transform: uppercase; line-height: 1.15; }
+  .meta small { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .meta span { font-size: 14px; letter-spacing: 0.02em; }
+  .people { display: flex; align-items: center; margin-left: auto; }
+  .people .av + .av { margin-left: -6px; }
+  .sound {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .sound:hover { border-color: var(--ink); color: var(--ink); }
+  .sound[aria-pressed="true"] { color: var(--orange); border-color: var(--orange); }
+
+  /* avatars */
+  .av {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .av-y { background: var(--cream); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .av-s { background: var(--orange); color: var(--orange-ink); }
+  .av-none { background: transparent; box-shadow: inset 0 0 0 1px var(--rule); color: transparent; }
+  .av.pop { animation: pop .5s cubic-bezier(.2, .9, .3, 1.3) both; }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } }
+
+  /* arrangement */
+  .arrange {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .grid {
+    --hdr: 236px;
+    --lane-min: 560px;
+    --row: 58px;
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--hdr) minmax(var(--lane-min), 1fr);
+    grid-template-rows: 28px;
+    grid-auto-rows: var(--row);
+    min-width: calc(var(--hdr) + var(--lane-min));
+  }
+  .corner, .trk {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--surface);
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .corner {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .ruler {
+    position: relative;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    background-image: repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 25%);
+  }
+  .ruler span { position: absolute; top: 7px; }
+
+  .trk {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px 0 12px;
+    transition: box-shadow .2s;
+  }
+  .trk.sel { box-shadow: inset 3px 0 0 var(--orange); }
+  .trk .icw { position: relative; flex: none; display: flex; align-items: center; gap: 7px; }
+  .trk .ic { width: 18px; height: 18px; color: var(--ink-muted); }
+  .trk .nm {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    font-size: 14.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .trk .av { width: 24px; height: 24px; font-size: 10px; }
+  .ms { display: flex; gap: 3px; flex: none; }
+  .ms button, .fx {
+    height: 24px;
+    min-width: 24px;
+    padding: 0 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .ms button:hover, .fx:hover { border-color: var(--ink-muted); color: var(--ink); }
+  .ms .m[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+  .ms .s[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: var(--orange-ink); }
+  .fx[aria-expanded="true"] { border-color: var(--orange); color: var(--orange); }
+
+  .lane {
+    position: relative;
+    border-bottom: 1px solid var(--rule);
+    background-image:
+      repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 25%),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--rule) 45%, transparent) 0 1px, transparent 1px 6.25%);
+  }
+  .lane.muted .clip { opacity: .38; }
+  .lane.merged::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 2px var(--orange);
+    background: color-mix(in srgb, var(--orange) 9%, transparent);
+    animation: merged 3.2s ease forwards;
+  }
+  @keyframes merged { 0% { opacity: 0; } 12% { opacity: 1; } 65% { opacity: 1; } 100% { opacity: .3; } }
+
+  .clip {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: calc(var(--s) * 6.25%);
+    width: calc(var(--l) * 6.25% - 2px);
+    margin-left: 1px;
+    background: var(--cream);
+    background: color-mix(in srgb, var(--ink) 7%, var(--surface));
+    border: 1px solid var(--ink-faint);
+    border-color: color-mix(in srgb, var(--ink) 28%, transparent);
+    border-radius: var(--radius);
+    overflow: hidden;
+    color: var(--ink-muted);
+  }
+  .clip .cn {
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    right: 6px;
+    z-index: 1;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .clip svg { position: absolute; left: 0; top: 18px; width: 100%; height: calc(100% - 21px); }
+  .clip .mt {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    z-index: 2;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--orange);
+    color: var(--orange-ink);
+    border-radius: var(--radius);
+    padding: 1px 5px;
+  }
+  .clip.by-s {
+    color: var(--orange);
+    border-color: var(--orange);
+    background: color-mix(in srgb, var(--orange) 14%, var(--surface));
+  }
+  .clip.enter { animation: clipIn .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--d, 0) * 45ms); }
+  @keyframes clipIn { from { opacity: 0; transform: translateY(8px); } }
+
+  .playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--hdr) + (100% - var(--hdr)) * var(--p, 0));
+    width: 0;
+    border-left: 2px solid var(--orange);
+    margin-left: -1px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .playhead::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -7px;
+    border: 6px solid transparent;
+    border-top: 8px solid var(--orange);
+  }
+
+  /* Sofie's cursor */
+  .peer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .peer.on { opacity: 1; }
+  .peer svg { display: block; }
+  .peer .who {
+    position: absolute;
+    left: 14px;
+    top: 16px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    background: var(--orange);
+    color: var(--orange-ink);
+    border-radius: var(--radius);
+    padding: 1px 6px;
+    white-space: nowrap;
+  }
+  .peer .carry {
+    opacity: .92;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .14);
+  }
+
+  /* bottom panel: effect chain / version history */
+  .panel { border-top: 1px solid var(--rule); padding: 16px 14px 18px; }
+  .panel.enter { animation: panelIn .35s ease both; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(6px); } }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .panel-title {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .panel-title strong { color: var(--ink); font-weight: 500; }
+
+  .plugins { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .plugin {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 12px 14px 14px;
+  }
+  .plugin-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .plugin-name {
+    font-family: var(--display);
+    font-weight: 800;
+    font-stretch: 86%;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .plugin-kind {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .knobs { display: flex; flex-wrap: wrap; gap: 14px 18px; }
+  .knob {
+    width: 66px;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    border-radius: var(--radius);
+  }
+  .knob svg { width: 50px; height: 50px; display: block; }
+  .knob .kl, .knob .kv { font-family: var(--mono); text-transform: uppercase; white-space: nowrap; }
+  .knob .kl { font-size: 10px; letter-spacing: 0.07em; color: var(--ink-muted); }
+  .knob .kv { font-size: 11px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .knob .trackarc { stroke: var(--rule); }
+  .knob .valarc { stroke: var(--orange); }
+  .knob .needle { stroke: var(--ink); }
+  .knob .cap { fill: var(--surface); stroke: var(--rule); }
+
+  .history {
+    display: grid;
+    grid-template-columns: minmax(0, 290px) minmax(0, 1fr);
+    gap: 16px 32px;
+    align-items: center;
+  }
+  .hist-rings { position: relative; width: 100%; aspect-ratio: 1; touch-action: manipulation; }
+  .hist-rings canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+  .hist-side { display: grid; gap: 14px; align-content: center; }
+  .hist-readout {
+    margin: 0;
+    display: grid;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+  }
+  .hist-readout strong { color: var(--ink); font-weight: 500; }
+  .hist-readout .hint { color: var(--ink-faint); }
+  .hist-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* the shared-link card that sits over the window before step 1 */
+  .cover {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    transition: opacity .35s ease;
+  }
+  .cover.leaving { opacity: 0; pointer-events: none; }
+  .link-card {
+    width: 100%;
+    max-width: 380px;
+    display: grid;
+    gap: 12px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 20px 22px 22px;
+  }
+  .link-card .from {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .link-card .msg { margin: 0; font-size: 17px; line-height: 1.4; }
+  .link-card .url {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--orange);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 12px;
+    overflow-wrap: anywhere;
+  }
+  .link-card .btn { justify-self: start; }
+  .loadbar { height: 2px; background: var(--orange); transform-origin: left; animation: load .7s ease-out both; }
+  @keyframes load { from { transform: scaleX(0); } }
+
+  .daw:not(.open) .trk,
+  .daw:not(.open) .lane { visibility: hidden; }
+  .daw.open .trk, .daw.open .lane { animation: rowIn .45s ease both; animation-delay: calc(var(--r, 0) * 80ms); }
+  @keyframes rowIn { from { opacity: 0; transform: translateY(6px); } }
+  .daw.settled .trk, .daw.settled .lane { animation: none; }
+
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    z-index: 9;
+    width: max-content;
+    max-width: calc(100% - 28px);
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0.03em;
+    text-align: center;
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    transition: opacity .22s ease, transform .22s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* the guide's pointer during "Play demo automatically" */
+  .ghost {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .ghost.on { opacity: 1; }
+  .ghost svg { display: block; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .18)); }
+  .ghost .ripple {
+    position: absolute;
+    left: -13px;
+    top: -13px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--orange);
+    opacity: 0;
+  }
+  .ghost.click .ripple { animation: ripple .45s ease-out; }
+  @keyframes ripple { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+
+  /* ---------- closing CTA ---------- */
+
+  .cta-inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px 48px;
+    flex-wrap: wrap;
+  }
+  .cta .eyebrow { color: var(--orange-ink); opacity: .75; margin-bottom: 18px; }
+  .cta h2 { max-width: 16ch; }
+  .cta.lit h2 { animation: ctaIn .7s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes ctaIn { from { opacity: .2; transform: translateY(10px); } }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 860px) {
+    .intro { grid-template-columns: 1fr; }
+    .intro-cta { justify-self: start; }
+  }
+
+  @media (max-width: 640px) {
+    .steps { gap: 4px; }
+    .steps .l { display: none; }
+    .caption-row { padding-top: 12px; }
+    .caption { flex-basis: 100%; font-size: 12.5px; }
+    .step-nav { width: 100%; }
+    .step-nav button { flex: 1; }
+
+    .daw { margin-inline: calc(-1 * max(var(--gutter), env(safe-area-inset-left)) + 8px); }
+    .daw-top, .transport { padding-inline: 10px; }
+    .transport { gap: 8px 10px; flex-wrap: nowrap; }
+    .readout { font-size: 13px; padding: 6px 8px; }
+    .readout .sec { display: none; }
+    .meta span { font-size: 13px; }
+    .people .av { width: 24px; height: 24px; font-size: 10px; }
+    .sound { padding: 6px 7px; }
+    .sound .lbl { display: none; }
+
+    /* track list collapses to icons */
+    .grid { --hdr: 64px; --row: 64px; --lane-min: 540px; }
+    .corner { padding: 0; justify-content: center; }
+    .trk { flex-direction: column; justify-content: center; gap: 7px; padding: 0 6px; }
+    .trk .nm, .trk .fx { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .trk .ic { width: 20px; height: 20px; }
+    .trk .av { position: absolute; right: -11px; top: -7px; width: 17px; height: 17px; font-size: 8.5px; border-width: 1.5px; }
+    .ms button { min-width: 22px; height: 22px; padding: 0 4px; }
+
+    .plugins { grid-template-columns: 1fr; }
+    .knobs { justify-content: space-between; }
+    .history { grid-template-columns: 1fr; justify-items: center; }
+    .hist-rings { max-width: 280px; }
+    .hist-side { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ghost { transition: none; }
+  }
+</style>
+</head>
+<body>
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="11.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="13" cy="13" r="7"    fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="13" cy="13" r="3"    fill="#FE5B1E"/>
+    </svg>
+    gitster
+  </a>
+  <a class="masthead-link" href="/signup">Early access</a>
+</header>
+
+<main id="top">
+  <section class="wrap intro">
+    <div>
+      <p class="eyebrow">Interactive demo</p>
+      <h1>A song, made together, in a browser tab.</h1>
+      <p class="lede">Five short steps through a gitster project. It's a simulation, but the sound is real.</p>
+    </div>
+    <div class="intro-cta">
+      <button class="btn" type="button" id="autoBtn">Play demo automatically</button>
+      <p class="hero-note">Sound starts only when you press play. Headphones help.</p>
+    </div>
+  </section>
+
+  <section class="wrap stage" aria-label="gitster demo">
+    <ol class="steps" id="steps">
+      <li data-step="1"><span class="n">01</span><span class="l">Open a shared link</span></li>
+      <li data-step="2"><span class="n">02</span><span class="l">Bring your own setup</span></li>
+      <li data-step="3"><span class="n">03</span><span class="l">Everyone works at once</span></li>
+      <li data-step="4"><span class="n">04</span><span class="l">Every version, kept</span></li>
+      <li data-step="5"><span class="n">05</span><span class="l">Your turn</span></li>
+    </ol>
+    <div class="caption-row">
+      <p class="caption" id="caption" aria-live="polite"></p>
+      <div class="step-nav">
+        <button class="btn-line" type="button" id="backBtn">Back</button>
+        <button class="btn btn-sm" type="button" id="nextBtn">Next</button>
+      </div>
+    </div>
+
+    <div class="daw" id="daw">
+      <div class="daw-top">
+        <span class="proj">Night in the city</span>
+        <span class="proj-path">gitster / nikolaj / night-in-the-city</span>
+        <span class="tag tag-fill" id="viewTag" hidden>Viewing v4 · The good one</span>
+        <span class="tag tag-ok" id="installTag" hidden>✓ Nothing to install</span>
+      </div>
+
+      <div class="transport">
+        <button class="play" type="button" id="playBtn" aria-label="Play">
+          <svg id="playIcon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>
+        </button>
+        <span class="readout" id="clock" aria-label="Position">01.1.1<span class="sec">00:00.0</span></span>
+        <span class="meta"><small>BPM</small><span id="bpm">96</span></span>
+        <span class="meta"><small>Key</small><span>A min</span></span>
+        <span class="people" id="people" aria-label="People in this project"></span>
+        <button class="sound" type="button" id="soundBtn" aria-pressed="false">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2 6h3l4-3v10L5 10H2z" fill="currentColor" stroke="none"/><path id="soundWaves" d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8"/><path id="soundX" d="M11 5.5l4 5m0-5l-4 5" hidden/></svg>
+          <span class="lbl" id="soundLbl">Sound on</span>
+        </button>
+      </div>
+
+      <div class="arrange" id="arrange">
+        <div class="grid" id="grid">
+          <div class="corner"><span class="corner-lbl">Tracks</span></div>
+          <div class="ruler" id="ruler"></div>
+          <!-- track rows are rendered by demo.js -->
+          <div class="playhead" id="playhead"></div>
+          <div class="peer" id="peer" aria-hidden="true">
+            <svg width="18" height="20" viewBox="0 0 18 20"><path d="M1 1l15 7.5-6.6 1.9L6.3 17z" fill="var(--orange)" stroke="var(--surface)" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            <span class="who">Sofie</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="fxPanel" hidden>
+        <div class="panel-head">
+          <p class="panel-title"><strong>Synth</strong> · effect chain</p>
+          <span class="tag tag-fill">Running in the cloud: Sofie doesn't own these.</span>
+        </div>
+        <div class="plugins">
+          <div class="plugin">
+            <div class="plugin-top"><span class="plugin-name">Glasswave</span><span class="plugin-kind">Filter</span></div>
+            <div class="knobs">
+              <div class="knob" data-param="cutoff" data-label="Cutoff"></div>
+              <div class="knob" data-param="res" data-label="Resonance"></div>
+            </div>
+          </div>
+          <div class="plugin">
+            <div class="plugin-top"><span class="plugin-name">Driftverb</span><span class="plugin-kind">Reverb</span></div>
+            <div class="knobs">
+              <div class="knob" data-param="mix" data-label="Mix"></div>
+              <div class="knob" data-param="decay" data-label="Decay"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="histPanel" hidden>
+        <div class="panel-head">
+          <p class="panel-title"><strong>Version history</strong> · every change, kept</p>
+        </div>
+        <div class="history">
+          <div class="hist-rings">
+            <canvas id="ringCanvas" role="img" aria-label="The version history of Night in the city, drawn as tree rings. The innermost ring is the first demo, the outermost is tonight's mix."></canvas>
+            <div class="ring-pill" id="ringPill" hidden><span class="v"></span><span class="t"></span></div>
+          </div>
+          <div class="hist-side">
+            <p class="hist-readout" id="ringReadout">
+              <strong data-slot="title">v16 · Tonight's mix</strong>
+              <span data-slot="detail">What's playing right now</span>
+              <span class="hint" data-slot="hint">Tap v4 to go back to the good one</span>
+            </p>
+            <div class="hist-actions">
+              <button class="btn-line" type="button" id="restoreBtn">Restore v4</button>
+              <button class="btn-line" type="button" id="latestBtn" disabled>Back to v16</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cover" id="cover">
+        <div class="link-card">
+          <p class="from"><span class="av">N</span>Nikolaj shared a project</p>
+          <p class="msg">“Here's the song. Open it and press play.”</p>
+          <p class="url">gitster / nikolaj / night-in-the-city</p>
+          <button class="btn" type="button" id="openBtn">Open project</button>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<section class="signup cta" id="cta">
+  <div class="wrap cta-inner">
+    <div>
+      <p class="eyebrow">Step 5 · Your turn</p>
+      <h2>Want to make your next song in gitster?</h2>
+      <p>We're opening it to a small group of artists and producers first.</p>
+    </div>
+    <a class="btn btn-invert" href="/signup">Sign up for early access</a>
+  </div>
+</section>
+
+<footer class="wrap site-footer">
+  <span>gitster — an online DAW for making songs with other people</span>
+  <span>gitster is a student project in development. This demo is a simulation.</span>
+</footer>
+
+<div class="ghost" id="ghost" aria-hidden="true">
+  <svg width="22" height="24" viewBox="0 0 18 20"><path d="M1 1l15 7.5-6.6 1.9L6.3 17z" fill="var(--ink)" stroke="var(--cream)" stroke-width="1.5" stroke-linejoin="round"/></svg>
+  <span class="ripple"></span>
+</div>
+
+<script src="/assets/funnel.js"></script>
+<script src="/assets/demo.js"></script>
+</body>
+</html>

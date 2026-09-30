@@ -1,0 +1,395 @@
+/* gitster design system
+   Extracted from the landing page (repo root index.html), which stays the source
+   of truth. Shared by / (demo) and /signup. */
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=DM+Mono:wght@400;500&display=swap");
+
+/* ---------- tokens ---------- */
+
+:root {
+  --cream:        #EEEFEA;
+  --surface:      #F6F6F3;
+  --ink:          #1D2150;
+  --ink-muted:    #5A5F84;
+  --ink-faint:    #8A8FAE;
+  --orange:       #FE5B1E;
+  --orange-ink:   #FFF3EE;
+  --rule:         #D5D6CE;
+  --ring:         #1D2150;
+  --ring-alpha:   0.42;
+  --focus:        #1D2150;
+
+  --display: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --body:    "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono:    "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --gutter: clamp(20px, 5vw, 56px);
+  --maxw: 1120px;
+  --radius: 2px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cream:      #141838;
+    --surface:    #1B1F42;
+    --ink:        #EEEFEA;
+    --ink-muted:  #A3A8CC;
+    --ink-faint:  #767BA3;
+    --orange:     #FF6B32;
+    --orange-ink: #1B0B04;
+    --rule:       #333863;
+    --ring:       #A9AEDC;
+    --ring-alpha: 0.38;
+    --focus:      #FF6B32;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --cream:      #141838;
+  --surface:    #1B1F42;
+  --ink:        #EEEFEA;
+  --ink-muted:  #A3A8CC;
+  --ink-faint:  #767BA3;
+  --orange:     #FF6B32;
+  --orange-ink: #1B0B04;
+  --rule:       #333863;
+  --ring:       #A9AEDC;
+  --ring-alpha: 0.38;
+  --focus:      #FF6B32;
+  color-scheme: dark;
+}
+
+/* ---------- base ---------- */
+
+* { box-sizing: border-box; }
+
+html { overflow-x: clip; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline:
+    max(var(--gutter), env(safe-area-inset-left))
+    max(var(--gutter), env(safe-area-inset-right));
+}
+
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+[hidden] { display: none !important; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: calc(26px + env(safe-area-inset-top));
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 86%;
+  font-size: 23px;
+  letter-spacing: -0.015em;
+  text-decoration: none;
+}
+.brand svg { display: block; flex: none; }
+.masthead-link {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-muted);
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--rule);
+  transition: color .18s, border-color .18s;
+}
+.masthead-link:hover { color: var(--orange); border-color: var(--orange); }
+
+/* ---------- type ---------- */
+
+h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 83%;
+  font-size: clamp(50px, 8.2vw, 92px);
+  line-height: 0.9;
+  letter-spacing: -0.028em;
+  margin: 0 0 22px;
+  text-wrap: balance;
+}
+.lede {
+  font-size: clamp(18px, 2vw, 21px);
+  line-height: 1.42;
+  max-width: 30ch;
+  margin: 0 0 30px;
+  color: var(--ink);
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 26px;
+}
+.hero-note {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+  max-width: 22ch;
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
+  display: inline-block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 92%;
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--orange-ink);
+  background: var(--orange);
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px 26px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .14s ease, filter .14s ease;
+}
+.btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; filter: none; }
+
+/* The same button, sitting on an orange section. */
+.btn-invert {
+  background: var(--orange-ink);
+  color: var(--orange);
+  font-weight: 800;
+  font-stretch: 88%;
+}
+.btn-invert:hover { filter: brightness(.97); }
+.signup :focus-visible { outline-color: var(--orange-ink); }
+
+/* Secondary: a thin outlined button, same shape. */
+.btn-line {
+  display: inline-block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 92%;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: border-color .14s ease, color .14s ease;
+}
+.btn-line:hover:not(:disabled) { border-color: var(--ink); }
+.btn-line:disabled { opacity: .45; cursor: default; }
+
+/* ---------- ring history (shared by the landing page and the demo) ---------- */
+
+.ring-pill {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  transform: translateY(-50%);
+  background: var(--orange);
+  color: var(--orange-ink);
+  border-radius: 999px;
+  padding: 4px 12px 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  font-size: 13px;
+  line-height: 1.2;
+  transition: opacity .2s ease;
+}
+.ring-pill .v { font-family: var(--mono); font-weight: 500; font-size: 12px; }
+.ring-pill .t { font-weight: 600; font-stretch: 94%; }
+
+/* ---------- orange section (signup / closing CTA) ---------- */
+
+.signup {
+  background: var(--orange);
+  color: var(--orange-ink);
+  margin-top: clamp(28px, 5vw, 56px);
+  padding-block: clamp(44px, 7vw, 76px);
+}
+.signup h2 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 84%;
+  font-size: clamp(36px, 5.6vw, 58px);
+  line-height: 0.94;
+  letter-spacing: -0.026em;
+  margin: 0 0 14px;
+  text-wrap: balance;
+}
+.signup p { margin: 0; font-size: 16.5px; line-height: 1.45; max-width: 32ch; opacity: .88; }
+
+/* ---------- form fields (styled for the orange section) ---------- */
+
+form { display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field label {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: .78;
+}
+.field .opt { text-transform: none; letter-spacing: 0; opacity: .7; }
+.field input, .field select {
+  font-family: var(--body);
+  font-size: 16px;
+  color: var(--orange-ink);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid currentColor;
+  border-radius: 0;
+  padding: 9px 2px;
+  width: 100%;
+  appearance: none;
+}
+.field input::placeholder { color: currentColor; opacity: .5; }
+.field select { background-image: none; cursor: pointer; }
+.field select option { background: var(--cream); color: var(--ink); }
+.field input:focus-visible, .field select:focus-visible { outline-offset: 2px; outline-color: var(--orange-ink); }
+
+/* Consent checkbox: same line weight as the fields. */
+.check {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  font-size: 15px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.check input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  padding: 0;
+  border: 2px solid currentColor;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+}
+.check input::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: currentColor;
+  clip-path: polygon(14% 44%, 0 60%, 40% 100%, 100% 22%, 85% 8%, 38% 70%);
+  transform: scale(0);
+  transition: transform .12s ease;
+}
+.check input:checked::before { transform: scale(1); }
+.check input:focus-visible { outline: 2px solid var(--orange-ink); outline-offset: 2px; }
+
+/* Honeypot: off-screen for people, still in the form for bots. */
+.hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+
+.submit {
+  justify-self: start;
+  margin-top: 6px;
+  background: var(--orange-ink);
+  color: var(--orange);
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 88%;
+  font-size: 17px;
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px 28px;
+  cursor: pointer;
+  transition: transform .14s ease, filter .14s ease;
+}
+.submit:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(.97); }
+.submit:disabled { opacity: .55; cursor: progress; }
+
+.form-foot {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: .82;
+  margin: 0;
+  max-width: 40ch;
+}
+.form-error {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--orange-ink);
+  color: var(--orange);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  margin: 0;
+}
+
+/* ---------- footer ---------- */
+
+.site-footer {
+  padding-top: 30px;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px 18px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* ---------- motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="gitster is an online DAW for making songs with other people. Bring your own setup, keep every version, share in one tap.">
+<title>gitster</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cstyle%3E.r%7Bstroke:%231D2150%7D@media (prefers-color-scheme:dark)%7B.r%7Bstroke:%23EEEFEA%7D%7D%3C/style%3E%3Ccircle class='r' cx='13' cy='13' r='11.6' fill='none' stroke-width='1.6'/%3E%3Ccircle class='r' cx='13' cy='13' r='7' fill='none' stroke-width='1.6'/%3E%3Ccircle cx='13' cy='13' r='3' fill='%23FE5B1E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/gitster.css">
+<style>
+  /* ---------- hero ---------- */
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 64px);
+    align-items: center;
+    padding-block: clamp(36px, 6vw, 72px) clamp(44px, 7vw, 88px);
+  }
+  .hero-cta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+
+  /* ---------- rings ---------- */
+
+  .rings {
+    position: relative;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 520px;
+    justify-self: end;
+    touch-action: manipulation;
+  }
+  .rings canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+
+  .ring-readout {
+    margin-top: 18px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+  }
+  .ring-readout strong { color: var(--ink); font-weight: 500; }
+  .ring-readout .hint { margin-left: auto; color: var(--ink-faint); }
+
+  /* ---------- value grid ---------- */
+
+  .values {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(24px, 4vw, 48px);
+    padding-block: clamp(40px, 6vw, 68px);
+    border-top: 2px solid var(--ink);
+  }
+  .value { border-top: 1px solid var(--rule); padding-top: 16px; }
+  .values .value:first-child { border-top-color: transparent; padding-top: 0; }
+  @media (min-width: 761px) {
+    .values .value { border-top: none; padding-top: 0; }
+  }
+  .value h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-stretch: 90%;
+    font-size: 21px;
+    letter-spacing: -0.012em;
+    margin: 0 0 8px;
+  }
+  .value p { margin: 0; color: var(--ink-muted); font-size: 16px; line-height: 1.5; max-width: 34ch; }
+
+  /* ---------- comparison ---------- */
+
+  .compare { padding-block: clamp(40px, 6vw, 72px); border-top: 1px solid var(--rule); }
+  .compare h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-stretch: 85%;
+    font-size: clamp(30px, 4.4vw, 46px);
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    margin: 0 0 36px;
+    max-width: 19ch;
+    text-wrap: balance;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(20px, 4vw, 52px);
+  }
+  .col-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 2px solid currentColor;
+    margin-bottom: 4px;
+  }
+  .col-now { color: var(--ink-faint); }
+  .col-new { color: var(--orange); }
+  .compare ul { list-style: none; margin: 0; padding: 0; }
+  .compare li {
+    padding: 13px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 15.5px;
+    line-height: 1.42;
+  }
+  .col-now li { color: var(--ink-muted); }
+  .col-now li s { text-decoration-color: var(--ink-faint); text-decoration-thickness: 1px; }
+  .col-new li { color: var(--ink); }
+
+  /* ---------- signup ---------- */
+
+  .signup-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(28px, 5vw, 64px);
+    align-items: start;
+  }
+
+  .done { display: grid; gap: 14px; align-content: start; }
+  .done .tick {
+    font-family: var(--display);
+    font-weight: 800;
+    font-stretch: 86%;
+    font-size: 27px;
+    letter-spacing: -0.018em;
+  }
+  .done p { max-width: 38ch; opacity: .9; font-size: 16px; }
+  .done .meta { font-family: var(--mono); font-size: 12.5px; opacity: .78; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 36px; }
+    .rings { justify-self: center; max-width: 400px; }
+    .signup-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .values { grid-template-columns: 1fr; gap: 22px; }
+    .compare-grid { grid-template-columns: 1fr; gap: 34px; }
+  }
+</style>
+</head>
+<body>
+<header class="wrap masthead">
+  <a class="brand" href="/">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="11.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="13" cy="13" r="7"    fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="13" cy="13" r="3"    fill="#FE5B1E"/>
+    </svg>
+    gitster
+  </a>
+  <a class="masthead-link" href="/">See the demo</a>
+</header>
+
+<main id="top">
+  <section class="wrap hero">
+    <div class="hero-copy">
+      <h1>Make music together.<br>Lose nothing.</h1>
+      <p class="lede">gitster is an online DAW for making songs with other people.</p>
+      <div class="hero-cta">
+        <a class="btn" href="#signup">Sign up for early access</a>
+        <p class="hero-note">Free while we build it. No card, no download.</p>
+      </div>
+    </div>
+
+    <div class="rings">
+      <canvas id="ringCanvas" role="img" aria-label="The version history of a song, drawn as tree rings. The innermost ring is the first demo, the outermost is tonight's mix."></canvas>
+      <div class="ring-pill" id="ringPill" hidden><span class="v"></span><span class="t"></span></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <p class="ring-readout" id="ringReadout">
+      <strong data-slot="title">v4 · The good one</strong>
+      <span data-slot="detail">Chorus before the rewrite</span>
+      <span class="hint">Click a ring to go back</span>
+    </p>
+  </div>
+
+  <section class="wrap values" aria-label="What gitster does">
+    <div class="value">
+      <h2>Bring your own setup</h2>
+      <p>Collaborators don't need your DAW or your plugins to join in. They open a link and hear exactly what you hear.</p>
+    </div>
+    <div class="value">
+      <h2>Every version, kept</h2>
+      <p>Changes save in the background, so the good early demo is always there. You never name a file <span style="font-family:var(--mono);font-size:14px">final_v3</span> again.</p>
+    </div>
+    <div class="value">
+      <h2>Share in one tap</h2>
+      <p>Plugins, automation and samples come along. No bouncing stems, no zipping folders, no lossy previews.</p>
+    </div>
+  </section>
+
+  <section class="wrap compare">
+    <p class="eyebrow">The part nobody enjoys</p>
+    <h2>Five minutes of music, an hour of file admin.</h2>
+    <div class="compare-grid">
+      <div class="col-now">
+        <p class="col-label">Right now</p>
+        <ul>
+          <li>Bounce a mixdown, upload it, wait for a reply.</li>
+          <li>“Do you have Serum?” — they don't.</li>
+          <li>Three folders, four versions, one right answer.</li>
+          <li>The demo everyone loved lives on a dead laptop.</li>
+          <li>One person shares their screen. Everyone else watches.</li>
+        </ul>
+      </div>
+      <div class="col-new">
+        <p class="col-label">With gitster</p>
+        <ul>
+          <li>The whole project opens in their browser, intact.</li>
+          <li>Your plugin chain runs in the cloud. Nobody buys anything.</li>
+          <li>One project. Every state of it, on a timeline.</li>
+          <li>v4 is still there, still playable, still editable.</li>
+          <li>Everyone works at once. The edits merge.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="signup" id="signup">
+  <div class="wrap signup-inner">
+    <div>
+      <h2>Sign up for early access</h2>
+      <p>We're opening gitster to a small group of artists and producers first. Tell us what you work in and we'll start there.</p>
+    </div>
+
+    <div>
+      <form id="signupForm" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="daw">Main DAW</label>
+          <select id="daw" name="daw" required>
+            <option value="" disabled selected>Choose one</option>
+            <option>Ableton Live</option>
+            <option>FL Studio</option>
+            <option>Logic Pro</option>
+            <option>Pro Tools</option>
+            <option>Reaper</option>
+            <option>Cubase</option>
+            <option>Bitwig Studio</option>
+            <option>Studio One</option>
+            <option>GarageBand</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pain">What breaks your collaborations today? <span class="opt">(optional)</span></label>
+          <input type="text" id="pain" name="pain" maxlength="500" placeholder="One line is plenty">
+        </div>
+        <label class="check" for="consent">
+          <input type="checkbox" id="consent" name="consent" required>
+          <span>I agree that gitster may email me once when it's ready to try.</span>
+        </label>
+        <div class="hp" aria-hidden="true">
+          <label for="website">Leave this field empty</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <p class="form-error" id="formError" role="alert" hidden></p>
+        <button class="submit" type="submit" id="submitBtn">Get early access</button>
+        <p class="form-foot">gitster is still being built — there's nothing to download yet. We'll email you once when it's ready to try, and not about anything else.</p>
+      </form>
+
+      <div class="done" id="signupDone" tabindex="-1" hidden>
+        <p class="tick">You're on the list.</p>
+        <p>We'll write to <span id="doneEmail"></span> when gitster is ready for outside testing. It's still in development, so don't expect it tomorrow.</p>
+        <p class="meta" id="doneMeta"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap site-footer">
+  <span>gitster — an online DAW for making songs with other people</span>
+  <span>gitster is a student project in development. This demo is a simulation.</span>
+</footer>
+
+<script src="/assets/funnel.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var G = window.gitster;
+  G.track("signup_view");
+
+  /* ---------------- version history ---------------- */
+
+  var VERSIONS = [
+    { v: 1,  t: "First demo",         d: "Voice memo and one loop" },
+    { v: 2,  t: "Drums swapped",      d: "Borrowed break, slowed down" },
+    { v: 3,  t: "Bass take",          d: "Recorded in one pass" },
+    { v: 4,  t: "The good one",       d: "Chorus before the rewrite" },
+    { v: 5,  t: "Chorus rewrite",     d: "New words, same melody" },
+    { v: 6,  t: "Vocal comp",         d: "Nine takes, one line" },
+    { v: 7,  t: "Nikolaj's pass",     d: "He joined from his laptop" },
+    { v: 8,  t: "Guitar layers",      d: "Three, then two" },
+    { v: 9,  t: "Synths from Berlin", d: "Plugin we don't own" },
+    { v: 10, t: "Cut verse two",      d: "Song got shorter" },
+    { v: 11, t: "Back to v4",         d: "Pulled the old chorus forward" },
+    { v: 12, t: "Mix pass",           d: "Low end finally sits" },
+    { v: 13, t: "Reference match",    d: "A little brighter" },
+    { v: 14, t: "Stems for Tobias",   d: "Sent without exporting" },
+    { v: 15, t: "Master, first try",  d: "Too loud" },
+    { v: 16, t: "Tonight's mix",      d: "What's playing right now" }
+  ];
+
+  var HIGHLIGHT = 3; // v4 — "The good one"
+
+  var canvas = document.getElementById("ringCanvas");
+  var pill = document.getElementById("ringPill");
+  var readout = document.getElementById("ringReadout");
+  var readTitle = readout.querySelector('[data-slot="title"]');
+  var readDetail = readout.querySelector('[data-slot="detail"]');
+  var ctx = canvas.getContext("2d");
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Deterministic wobble: each ring gets its own harmonics, so the shape is
+     stable across redraws and resizes. */
+  function rand(seed) {
+    var x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  var shapes = VERSIONS.map(function (_, i) {
+    var h = [];
+    for (var k = 0; k < 4; k++) {
+      h.push({
+        freq: 2 + k + Math.floor(rand(i * 9 + k) * 3),
+        amp: (0.012 + rand(i * 5 + k + 40) * 0.026) / (k * 0.7 + 1),
+        phase: rand(i * 3 + k + 80) * Math.PI * 2
+      });
+    }
+    return {
+      harmonics: h,
+      labelAngle: (-1.05 + rand(i + 200) * 1.9) // right-hand side, top to bottom
+    };
+  });
+
+  var geom = { cx: 0, cy: 0, r0: 0, step: 0, size: 0 };
+  var selected = HIGHLIGHT;
+  var hovered = -1;
+  var revealed = reduced ? VERSIONS.length : 0;
+
+  function ringRadius(i, angle) {
+    var base = geom.r0 + geom.step * i;
+    var w = 1;
+    var h = shapes[i].harmonics;
+    for (var k = 0; k < h.length; k++) w += h[k].amp * Math.sin(h[k].freq * angle + h[k].phase);
+    // outer rings wander more, like the poster
+    var growth = 0.45 + (i / (VERSIONS.length - 1)) * 0.9;
+    return base * (1 + (w - 1) * growth);
+  }
+
+  function layout() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (!rect.width) return;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    geom.size = rect.width;
+    geom.cx = rect.width / 2;
+    geom.cy = rect.height / 2;
+    var outer = Math.min(rect.width, rect.height) * 0.455;
+    geom.r0 = outer * 0.075;
+    geom.step = (outer - geom.r0) / (VERSIONS.length - 1);
+  }
+
+  function styles() {
+    var cs = getComputedStyle(document.documentElement);
+    return {
+      ring: cs.getPropertyValue("--ring").trim() || "#1D2150",
+      alpha: parseFloat(cs.getPropertyValue("--ring-alpha")) || 0.42,
+      orange: cs.getPropertyValue("--orange").trim() || "#FE5B1E"
+    };
+  }
+
+  function tracePath(i) {
+    var steps = 200;
+    ctx.beginPath();
+    for (var s = 0; s <= steps; s++) {
+      var a = (s / steps) * Math.PI * 2;
+      var r = ringRadius(i, a);
+      var x = geom.cx + Math.cos(a) * r;
+      var y = geom.cy + Math.sin(a) * r;
+      if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  function draw() {
+    if (!geom.size) return;
+    var c = styles();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineJoin = "round";
+
+    for (var i = 0; i < VERSIONS.length; i++) {
+      var appear = Math.max(0, Math.min(1, revealed - i));
+      if (appear <= 0) continue;
+      var isSel = i === selected;
+      var isHov = i === hovered;
+      tracePath(i);
+      if (isSel) {
+        ctx.strokeStyle = c.orange;
+        ctx.lineWidth = Math.max(3, geom.size * 0.0085);
+        ctx.globalAlpha = appear;
+      } else {
+        ctx.strokeStyle = c.ring;
+        ctx.lineWidth = isHov ? 2.4 : 1.5;
+        ctx.globalAlpha = appear * (isHov ? c.alpha + 0.35 : c.alpha);
+      }
+      ctx.stroke();
+    }
+
+    // the core: v1 is always there
+    ctx.globalAlpha = Math.max(0, Math.min(1, revealed));
+    ctx.fillStyle = selected === 0 ? c.orange : c.ring;
+    ctx.beginPath();
+    ctx.arc(geom.cx, geom.cy, Math.max(2.5, geom.size * 0.008), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function placePill() {
+    if (!geom.size || revealed < selected + 1) { pill.hidden = true; return; }
+    var item = VERSIONS[selected];
+    var a = shapes[selected].labelAngle;
+    var r = ringRadius(selected, a);
+    pill.querySelector(".v").textContent = "v" + item.v;
+    pill.querySelector(".t").textContent = item.t;
+    pill.hidden = false;
+    pill.style.left = (geom.cx + Math.cos(a) * r) + "px";
+    pill.style.top = (geom.cy + Math.sin(a) * r) + "px";
+  }
+
+  function select(i) {
+    if (i < 0 || i >= VERSIONS.length || i === selected) return;
+    selected = i;
+    var item = VERSIONS[i];
+    readTitle.textContent = "v" + item.v + " · " + item.t;
+    readDetail.textContent = item.d;
+    draw();
+    placePill();
+  }
+
+  function ringAt(px, py) {
+    var dx = px - geom.cx, dy = py - geom.cy;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var angle = Math.atan2(dy, dx);
+    var best = -1, bestGap = Infinity;
+    for (var i = 0; i < VERSIONS.length; i++) {
+      var gap = Math.abs(dist - ringRadius(i, angle));
+      if (gap < bestGap) { bestGap = gap; best = i; }
+    }
+    return bestGap <= Math.max(10, geom.step * 0.62) ? best : -1;
+  }
+
+  function pointerPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  canvas.addEventListener("pointermove", function (e) {
+    var p = pointerPos(e);
+    var i = ringAt(p.x, p.y);
+    if (i !== hovered) { hovered = i; draw(); }
+    canvas.style.cursor = i >= 0 ? "pointer" : "default";
+  });
+  canvas.addEventListener("pointerleave", function () {
+    if (hovered !== -1) { hovered = -1; draw(); }
+  });
+  canvas.addEventListener("click", function (e) {
+    var p = pointerPos(e);
+    var i = ringAt(p.x, p.y);
+    if (i >= 0) {
+      G.once("ring_click");
+      select(i);
+    }
+  });
+
+  function redrawAll() { layout(); draw(); placePill(); }
+
+  window.addEventListener("resize", redrawAll);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAll);
+
+  layout();
+  if (reduced) {
+    draw();
+    placePill();
+  } else {
+    var start = null;
+    (function step(ts) {
+      if (start === null) start = ts;
+      var p = Math.min(1, (ts - start) / 1250);
+      revealed = VERSIONS.length * (1 - Math.pow(1 - p, 2.4));
+      draw();
+      if (p < 1) requestAnimationFrame(step);
+      else { revealed = VERSIONS.length; draw(); placePill(); }
+    })(performance.now());
+  }
+
+  /* ---------------- signup ---------------- */
+
+  var form = document.getElementById("signupForm");
+  var done = document.getElementById("signupDone");
+  var errBox = document.getElementById("formError");
+  var btn = document.getElementById("submitBtn");
+
+  function fail(msg) {
+    errBox.textContent = msg;
+    errBox.hidden = false;
+    G.track("signup_submit_error");
+  }
+
+  async function store(payload) {
+    var res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    var data = null;
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || "http " + res.status);
+    return "Saved. You can close this page.";
+  }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    errBox.hidden = true;
+
+    var email = document.getElementById("email").value.trim();
+    var daw = document.getElementById("daw").value;
+    var pain = document.getElementById("pain").value.trim();
+    var consent = document.getElementById("consent").checked;
+    var website = document.getElementById("website").value;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      fail("That email address doesn't look complete. Check it and try again.");
+      document.getElementById("email").focus();
+      return;
+    }
+    if (!daw) {
+      fail("Pick the DAW you work in most — it tells us who to open up to first.");
+      document.getElementById("daw").focus();
+      return;
+    }
+    if (!consent) {
+      fail("Tick the box so we're allowed to email you when gitster is ready.");
+      document.getElementById("consent").focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+
+    try {
+      var meta = await store({
+        email: email,
+        daw: daw,
+        pain: pain,
+        consent: consent,
+        src: G.src,
+        website: website
+      });
+      document.getElementById("doneEmail").textContent = email;
+      document.getElementById("doneMeta").textContent = meta;
+      form.hidden = true;
+      done.hidden = false;
+      done.focus();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "Get early access";
+      fail("We couldn't save your signup just now. Try again in a moment — or write to us directly and we'll add you by hand.");
+    }
+  });
+})();
+</script>
+</body>
+</html>

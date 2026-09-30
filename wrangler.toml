@@ -1,0 +1,10 @@
+name = "gitster"
+pages_build_output_dir = "./public"
+compatibility_date = "2025-09-01"
+
+# D1 database for signups and funnel events.
+# Replace database_id with the id printed by `npx wrangler d1 create gitster`.
+[[d1_databases]]
+binding = "DB"
+database_name = "gitster"
+database_id = "e588c3dc-2a59-47f7-a32c-f980c762b8ff"
